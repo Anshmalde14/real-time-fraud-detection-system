@@ -6,7 +6,7 @@ from datetime import (
     timedelta
 )
 
-from transaction_engine import (
+from streaming.transaction_engine import (
     generate_transaction_id
 )
 
