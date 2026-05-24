@@ -13,7 +13,6 @@ PROFILE_CONFIGS = {
             "ENTERTAINMENT"
         ]
     },
-
     "salaried": {
         "balance_range": (20000, 200000),
         "avg_transaction_range": (500, 10000),
@@ -26,7 +25,6 @@ PROFILE_CONFIGS = {
             "FOOD"
         ]
     },
-
     "business": {
         "balance_range": (100000, 5000000),
         "avg_transaction_range": (10000, 100000),
@@ -39,7 +37,6 @@ PROFILE_CONFIGS = {
             "TRANSFER"
         ]
     },
-
     "high_net_worth": {
         "balance_range": (1000000, 10000000),
         "avg_transaction_range": (5000, 500000),
@@ -52,7 +49,6 @@ PROFILE_CONFIGS = {
             "SHOPPING"
         ]
     },
-
     "elderly": {
         "balance_range": (50000, 1000000),
         "avg_transaction_range": (100, 5000),
@@ -66,7 +62,6 @@ PROFILE_CONFIGS = {
     }
 }
 
-
 PROFILE_DISTRIBUTION = {
     "student": 0.30,
     "salaried": 0.40,
@@ -75,11 +70,9 @@ PROFILE_DISTRIBUTION = {
     "elderly": 0.15
 }
 
-
 def choose_profile():
     profiles = list(PROFILE_DISTRIBUTION.keys())
     probabilities = list(PROFILE_DISTRIBUTION.values())
-
     return random.choices(
         profiles,
         weights=probabilities,

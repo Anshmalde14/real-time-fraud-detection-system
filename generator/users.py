@@ -1,11 +1,9 @@
 import random
 import uuid
-
 from generator.profiles import (
     PROFILE_CONFIGS,
     choose_profile
 )
-
 INDIAN_CITIES = [
     "Mumbai",
     "Delhi",
@@ -15,13 +13,11 @@ INDIAN_CITIES = [
     "Pune",
     "Kolkata"
 ]
-
 DEVICE_TYPES = [
     "Android",
     "iPhone",
     "Web"
 ]
-
 
 class User:
 
@@ -31,24 +27,14 @@ class User:
         self.profile_type = profile_type
         self.home_location = random.choice(INDIAN_CITIES)
         self.account_balance = round(
-            random.uniform(
-                *profile_data["balance_range"]
-            ),
-            2
-        )
+            random.uniform(*profile_data["balance_range"]),2)
         self.avg_transaction_amount = round(
-            random.uniform(
-                *profile_data["avg_transaction_range"]
-            ),
-            2
-        )
+            random.uniform(*profile_data["avg_transaction_range"]),2 )
         self.daily_transaction_limit = random.randint(
             *profile_data["daily_transaction_limit"]
         )
         self.active_hours = profile_data["active_hours"]
-        self.merchant_categories = profile_data[
-            "merchant_categories"
-        ]
+        self.merchant_categories = profile_data["merchant_categories"]
         self.account_age_days = random.randint(30, 4000)
         self.device_type = random.choice(DEVICE_TYPES)
         self.known_devices = self.generate_devices()
@@ -56,21 +42,14 @@ class User:
         self.daily_transaction_count = 0
 
     def generate_devices(self):
-
         device_count = random.randint(1, 3)
-
         devices = []
-
         for _ in range(device_count):
-
             device_id = f"DEV_{uuid.uuid4().hex[:8]}"
-
             devices.append(device_id)
-
         return devices
-
+    
     def to_dict(self):
-
         return {
             "user_id": self.user_id,
             "profile_type": self.profile_type,

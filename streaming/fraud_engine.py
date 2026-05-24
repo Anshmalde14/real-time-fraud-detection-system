@@ -1,22 +1,11 @@
 import random
 import uuid
-
-from datetime import (
-    datetime,
-    timedelta
+from datetime import (datetime,timedelta
 )
-
 from streaming.transaction_engine import (
     generate_transaction_id
 )
-
-
-# ============================================
-# GLOBAL DATA
-# ============================================
-
 FOREIGN_LOCATIONS = [
-
     "Dubai",
     "Singapore",
     "London",
@@ -24,520 +13,196 @@ FOREIGN_LOCATIONS = [
     "Berlin",
     "Tokyo"
 ]
-
-
 MERCHANTS = {
-
     "grocery": [
-
         "DMart",
         "Reliance Fresh",
         "BigBasket"
     ],
-
     "electronics": [
-
         "Croma",
         "Vijay Sales",
         "Amazon"
     ],
-
     "restaurants": [
-
         "Dominos",
         "McDonalds",
         "KFC"
     ],
-
     "fashion": [
-
         "Zara",
         "H&M",
         "Lifestyle"
     ],
-
     "travel": [
-
         "MakeMyTrip",
         "Uber",
         "Ola"
     ]
 }
 
-
-# ============================================
-# FRAUD TIME GENERATOR
-# SLIGHT NIGHT BIAS ONLY
-# ============================================
-
 def generate_fraud_hour():
-
     fraud_hour = random.choices(
-
         population=list(range(24)),
-
         weights=[
-
             2 if h in [0,1,2,3,4]
-
             else 1
-
             for h in range(24)
         ],
-
         k=1
     )[0]
-
     return fraud_hour
 
-
-# ============================================
-# LOW VALUE FRAUD
-# ============================================
-
 def generate_low_value_fraud(user):
-
-    amount = round(
-
-        random.uniform(50, 500),
-
-        2
-    )
-
+    amount = round(random.uniform(50, 500),2)
     old_balance = user["balance"]
-
     if old_balance < amount:
-
         return None
-
-    new_balance = round(
-
-        old_balance - amount,
-
-        2
-    )
-
-    category = random.choice(
-        list(MERCHANTS.keys())
-    )
-
-    merchant = random.choice(
-        MERCHANTS[category]
-    )
-
-    # ============================================
-    # FOREIGN BIAS FIX
-    # ============================================
-
+    new_balance = round(old_balance - amount,2)
+    category = random.choice(list(MERCHANTS.keys()))
+    merchant = random.choice(MERCHANTS[category])
     if random.random() < 0.05:
-
-        location = random.choice(
-            FOREIGN_LOCATIONS
-        )
-
+        location = random.choice(FOREIGN_LOCATIONS)
     else:
-
-        location = random.choice(
-            user["trusted_locations"]
-        )
-
+        location = random.choice(user["trusted_locations"])
     timestamp = datetime.now()
-
     fraud_hour = generate_fraud_hour()
-
-    timestamp = timestamp.replace(
-        hour=fraud_hour
-    )
-
+    timestamp = timestamp.replace(hour=fraud_hour)
     device_type = random.choice([
-
         "android",
         "ios",
         "web"
     ])
-
-    device_id = (
-        "DEVICE_" +
-        str(uuid.uuid4())[:8]
-    )
-
+    device_id = ("DEVICE_" +str(uuid.uuid4())[:8])
     transaction = {
-
-        "transaction_id":
-        generate_transaction_id(),
-
-        "user_id":
-        user["user_id"],
-
-        "user_type":
-        user["user_type"],
-
-        "amount":
-        amount,
-
-        "merchant_category":
-        category,
-
-        "merchant":
-        merchant,
-
-        "location":
-        location,
-
-        "device_type":
-        device_type,
-
-        "device_id":
-        device_id,
-
-        "timestamp":
-        timestamp,
-
-        "remaining_balance":
-        new_balance,
-
-        "fraud_label":
-        1,
-
-        "fraud_type":
-        "low_value_fraud"
+        "transaction_id":generate_transaction_id(),
+        "user_id":user["user_id"],
+        "user_type":user["user_type"],
+        "amount":amount,
+        "merchant_category":category,
+        "merchant":merchant,
+        "location":location,
+        "device_type":device_type,
+        "device_id":device_id,
+        "timestamp":timestamp,
+        "remaining_balance":new_balance,
+        "fraud_label":1,
+        "fraud_type":"low_value_fraud"
     }
-
     user["balance"] = new_balance
-
-    user["transaction_history"].append(
-        transaction
-    )
-
+    user["transaction_history"].append(transaction)
     return transaction
 
-
-# ============================================
-# VELOCITY FRAUD
-# ============================================
-
 def generate_velocity_fraud(user):
-
     transactions = []
-
     num_transactions = random.randint(3, 6)
-
     base_time = datetime.now()
-
-    # ============================================
-    # FOREIGN BIAS FIX
-    # ============================================
-
     if random.random() < 0.10:
-
-        location = random.choice(
-            FOREIGN_LOCATIONS
-        )
-
+        location = random.choice(FOREIGN_LOCATIONS)
     else:
-
-        location = random.choice(
-            user["trusted_locations"]
-        )
-
+        location = random.choice(user["trusted_locations"])
     for i in range(num_transactions):
-
-        amount = round(
-
-            random.uniform(100, 1500),
-
-            2
-        )
-
+        amount = round(random.uniform(100, 1500),2)
         old_balance = user["balance"]
-
         if old_balance < amount:
-
             continue
-
-        new_balance = round(
-
-            old_balance - amount,
-
-            2
-        )
-
-        category = random.choice(
-            list(MERCHANTS.keys())
-        )
-
-        merchant = random.choice(
-            MERCHANTS[category]
-        )
-
+        new_balance = round(old_balance - amount,2)
+        category = random.choice(list(MERCHANTS.keys()))
+        merchant = random.choice(MERCHANTS[category])
         fraud_hour = generate_fraud_hour()
-
-        txn_time = base_time + timedelta(
-            seconds=random.randint(10, 90)
-        )
-
-        txn_time = txn_time.replace(
-            hour=fraud_hour
-        )
-
+        txn_time = base_time + timedelta(seconds=random.randint(10, 90))
+        txn_time = txn_time.replace(hour=fraud_hour)
         transaction = {
-
-            "transaction_id":
-            generate_transaction_id(),
-
-            "user_id":
-            user["user_id"],
-
-            "user_type":
-            user["user_type"],
-
-            "amount":
-            amount,
-
-            "merchant_category":
-            category,
-
-            "merchant":
-            merchant,
-
-            "location":
-            location,
-
-            "device_type":
-            random.choice([
+            "transaction_id":generate_transaction_id(),
+            "user_id":user["user_id"],
+            "user_type":user["user_type"],
+            "amount":amount,
+            "merchant_category":category,
+            "merchant":merchant,
+            "location":location,
+            "device_type":random.choice([
                 "android",
                 "ios",
                 "web"
             ]),
-
-            "device_id":
-            "DEVICE_" + str(uuid.uuid4())[:8],
-
-            "timestamp":
-            txn_time,
-
-            "remaining_balance":
-            new_balance,
-
-            "fraud_label":
-            1,
-
-            "fraud_type":
-            "velocity_fraud"
+            "device_id":"DEVICE_" + str(uuid.uuid4())[:8],
+            "timestamp":txn_time,
+            "remaining_balance":new_balance,
+            "fraud_label":1,
+            "fraud_type":"velocity_fraud"
         }
-
         user["balance"] = new_balance
-
         user["transaction_history"].append(
             transaction
         )
-
-        transactions.append(
-            transaction
-        )
-
+        transactions.append(transaction)
     return transactions
 
-
-# ============================================
-# GRADUAL DRAINING FRAUD
-# ============================================
-
 def generate_gradual_draining_fraud(user):
-
-    amount = round(
-
-        user["balance"] * random.uniform(
-            0.01,
-            0.03
-        ),
-
-        2
-    )
-
+    amount = round(user["balance"] * random.uniform(0.01,0.03),2)
     if amount < 50:
-
         return None
-
     old_balance = user["balance"]
-
     if old_balance < amount:
-
-        return None
-
-    new_balance = round(
-
-        old_balance - amount,
-
-        2
-    )
-
+        return None 
+    new_balance = round(old_balance - amount,2)
     category = random.choice([
         "grocery",
         "restaurants"
     ])
-
-    merchant = random.choice(
-        MERCHANTS[category]
-    )
-
-    location = random.choice(
-        user["trusted_locations"]
-    )
-
+    merchant = random.choice(MERCHANTS[category])
+    location = random.choice(user["trusted_locations"])
     timestamp = datetime.now()
-
     fraud_hour = generate_fraud_hour()
-
-    timestamp = timestamp.replace(
-        hour=fraud_hour
-    )
-
+    timestamp = timestamp.replace(hour=fraud_hour)
     transaction = {
-
-        "transaction_id":
-        generate_transaction_id(),
-
-        "user_id":
-        user["user_id"],
-
-        "user_type":
-        user["user_type"],
-
-        "amount":
-        amount,
-
-        "merchant_category":
-        category,
-
-        "merchant":
-        merchant,
-
-        "location":
-        location,
-
-        "device_type":
-        random.choice([
+        "transaction_id":generate_transaction_id(),
+        "user_id":user["user_id"],
+        "user_type":user["user_type"],
+        "amount":amount,
+        "merchant_category":category,
+        "merchant":merchant,
+        "location":location,
+        "device_type":random.choice([
             "android",
             "ios",
             "web"
         ]),
-
-        "device_id":
-        "DEVICE_" + str(uuid.uuid4())[:8],
-
-        "timestamp":
-        timestamp,
-
-        "remaining_balance":
-        new_balance,
-
-        "fraud_label":
-        1,
-
-        "fraud_type":
-        "gradual_draining"
+        "device_id":"DEVICE_" + str(uuid.uuid4())[:8],
+        "timestamp":timestamp,
+        "remaining_balance":new_balance,
+        "fraud_label": 1,
+        "fraud_type":"gradual_draining"
     }
-
     user["balance"] = new_balance
-
-    user["transaction_history"].append(
-        transaction
-    )
-
+    user["transaction_history"].append(transaction)
     return transaction
-# ============================================
-# BEHAVIORAL CLONING FRAUD
-# ============================================
 
 def generate_behavior_cloning_fraud(user):
-
     if len(user["transaction_history"]) == 0:
-
         return None
-
-    historical_txn = random.choice(
-        user["transaction_history"]
-    )
-
-    avg_amount = user[
-        "avg_transaction_amount"
-    ]
-
-    amount = round(
-
-        random.uniform(
-
-            avg_amount * 0.8,
-
-            avg_amount * 1.2
-        ),
-
-        2
-    )
-
+    historical_txn = random.choice(user["transaction_history"])
+    avg_amount = user["avg_transaction_amount"]
+    amount = round(random.uniform( avg_amount * 0.8, avg_amount * 1.2 ),2)
     old_balance = user["balance"]
-
     if old_balance < amount:
-
         return None
-
-    new_balance = round(
-
-        old_balance - amount,
-
-        2
-    )
-
-    category = historical_txn[
-        "merchant_category"
-    ]
-
-    merchant = historical_txn[
-        "merchant"
-    ]
-
-    # ============================================
-    # MOSTLY TRUSTED LOCATION
-    # ============================================
-
+    new_balance = round(old_balance - amount,2)
+    category = historical_txn["merchant_category"]
+    merchant = historical_txn["merchant"]
     if random.random() < 0.20:
-
-        location = random.choice(
-            FOREIGN_LOCATIONS
-        )
-
+        location = random.choice( FOREIGN_LOCATIONS )
     else:
-
-        location = random.choice(
-            user["trusted_locations"]
-        )
-
-    # ============================================
-    # DEVICE CLONING
-    # ============================================
-
+        location = random.choice( user["trusted_locations"] )
     if random.random() < 0.70:
-
-        device_id = random.choice(
-            user["trusted_devices"]
-        )
-
+        device_id = random.choice( user["trusted_devices"] )
     else:
-
-        device_id = (
-            "DEVICE_" +
-            str(uuid.uuid4())[:8]
-        )
-
+        device_id = ( "DEVICE_" + str(uuid.uuid4())[:8] )
     timestamp = datetime.now()
-
     fraud_hour = generate_fraud_hour()
-
     timestamp = timestamp.replace(
         hour=fraud_hour
     )
-
     transaction = {
 
         "transaction_id":

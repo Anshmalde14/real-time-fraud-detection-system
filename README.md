@@ -30,7 +30,7 @@ A synthetic behavioral transaction simulation and fraud detection system built u
 - [x] Transaction generator
 - [x] Fraud injection system
 - [x] Dataset validation
-- [ ] Feature engineering
-- [ ] ML model training
-- [ ] FastAPI backend
-- [ ] Streamlit dashboard
+- [x] Feature engineering
+- [x] ML model training
+- [x] FastAPI backend
+- [x] Streamlit dashboard
